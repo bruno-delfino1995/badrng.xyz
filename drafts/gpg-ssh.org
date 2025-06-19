@@ -1,0 +1,36 @@
+#+TITLE: Adding a second key for SSH auth to GPG Agent
+
+The first time was difficult enough, the second a little bit easier, and now it's the third time I have had enough of this! Also, I kind of forgot most of things already because it's been a long since time since the last one 😅
+
+Though I understand that I could just search for these kinds of things (as I'm doing right now), the information is scattered through many forums and guides. Therefore, since it became frequent enough, and that it's always a pain, I'm finally creating my own guide. PS: if this guides doesn't work for you, and you need to search, I wish you the best of luck!
+
+It expects a setup using GPG Agent for SSH authentication, maybe backed by [[https://github.com/drduh/YubiKey-Guide][Yubikey]], and that you want to include another key for SSH use. There are two ways of doing it, with a simple SSH key, or with another GPG key.
+
+* Adding a plain SSH key to GPG Agent
+
+Generate a *SSH* key, and then run ~ssh-add ~/.ssh/<priv_file>~. That's it!
+
+It won't show in ~gpg --list-keys~ though, and it'll will use the deprecated ~~/.gnupg/sshcontrol~. Right after adding it to the agent you can remove the files, and the key will still work 🤯
+
+It's somewhat troublesome to remove it once you forget that you added it this way. To fully remove it, you'll need to find the line matching it in ~sshcontrol~ and delete it
+
+* Using a proper GPG key and setting it for SSH use
+
+Generate a "base" *GPG* key with ~gpg --gen-key~. It won't have an authentication subkey by default, so you'll need to add that with:
+
+#+BEGIN_SRC
+#+END_SRC
+
+Once you have those, you can tell GPG Agent to consider it for SSH use by toggling an attribute in that key: ~gpg-connect-agent 'keyattr <auth keygrip> Use-for-ssh: true' /bye~
+
+By configuring a proper GPG key, you can remove it by simply removing it from your agent with ~gpg --delete-secret-keys <keygrip>~.
+
+** TODO find a way to delete both secret and public key with a single command. After running ~--delete-secret-key~, the user still has to run another ~--delete-key~ for the same keygrip
+
+* Scratchpad
+
+- Just search PKM - https://www.youtube.com/watch?v=KlniB27j4Yg
+  - I remember him saying that but that's not the point of the video! It's about accepting the chaos and not overstressing about having a perfect note taking system that's broad and neat
+- I have do this either because I forgot the Yubikey 🤦 or because I need different keys per account.
+- It's a different setup each time I try it. The first I used a simple line in sshcontrol. The second, sshcontrol was deprecated and I had [[https://security.stackexchange.com/questions/276688/now-that-sshcontrol-has-been-deprecated-how-to-use-gpg-key-for-ssh-authentica][to change an attribute in the key]]. Now that it's the third, I'm seeing totally different things with creating subkeys and shit.
+- I remember reading [[https://goral.net.pl/post/use-gpg-for-ssh-keys/][this guide]] at some point. Probably during the first setup
